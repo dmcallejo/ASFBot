@@ -18,6 +18,11 @@ LOG = logging.getLogger('ASFBot')
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-v", "--verbosity", help="Defines log verbosity", choices=['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG'], default='INFO')
+parser.add_argument("--port", help="ASF IPC host. Default: 127.0.0.1", default='127.0.0.1')
+parser.add_argument("--host", help="ASF IPC port. Default: 1242", default='1242')
+parser.add_argument("TELEGRAM_API_TOKEN", type=str, help="Telegram API token given by @botfather.")
+parser.add_argument("USER_ALIAS", type=str, help="Telegram alias of the bot owner.")
+
 
 args = parser.parse_args()
 
@@ -30,19 +35,6 @@ for logger in LOG.handlers:
 LOG.info("Starting up bot...")
 
 exit()
-
-TELEGRAM_API_TOKEN=os.environ.get('TELEGRAM_API_TOKEN') #TODO: ENV or ARGPARSE
-if not TELEGRAM_API_TOKEN:
-    LOG.error("Missing TELEGRAM_API_TOKEN env variable")
-    exit(1)
-TELEGRAM_USER_ID=os.environ.get('TELEGRAM_USER_ID')
-if not TELEGRAM_USER_ID:
-    LOG.error("Missing TELEGRAM_USER_ID env variable")
-    exit(1)
-
-
-ASF_IPC_HOST=os.environ.get('ASF_IPC_HOST') or '127.0.0.1'
-ASF_IPC_PORT=os.environ.get('ASF_IPC_PORT') or '1242'
 
 LOG.debug("ASF IPC host: " + ASF_IPC_HOST)
 LOG.debug("ASF IPC port: " + ASF_IPC_PORT)

@@ -33,11 +33,10 @@ for logger in LOG.handlers:
     logger.setLevel(args.verbosity)
 
 LOG.info("Starting up bot...")
+LOG.debug("ASF IPC host: " + host)
+LOG.debug("ASF IPC port: " + port)
 
 exit()
-
-LOG.debug("ASF IPC host: " + ASF_IPC_HOST)
-LOG.debug("ASF IPC port: " + ASF_IPC_PORT)
 
 _last_message=None
 _error=False
@@ -46,7 +45,7 @@ asf_prepend='/usr/bin/mono /root/ASF/ASF.exe --client '
 asf_primary_bot='1'
 asf_append=''
 cdkey_pattern = re.compile('\w{5}-\w{5}-\w{5}')
-_boss=183718
+
 bot = telebot.TeleBot(TELEGRAM_API_TOKEN)
 
 

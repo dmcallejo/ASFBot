@@ -3,8 +3,8 @@
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-#import telebot
-#from telebot.util import async
+import telebot
+from telebot.util import async
 from datetime import datetime
 import time
 import subprocess
@@ -39,86 +39,66 @@ LOG.debug("ASF IPC host: " + args.host)
 LOG.debug("ASF IPC port: " + args.port)
 asf_connector = ASFConnector(args.host, args.port)
 asf_connector.send_command("status")
-exit()
 
-_last_message = None
-_error = False
+_cdkey_pattern = re.compile('\w{5}-\w{5}-\w{5}')
 
-asf_prepend = '/usr/bin/mono /root/ASF/ASF.exe --client '
-asf_primary_bot = '1'
-asf_append = ''
-cdkey_pattern = re.compile('\w{5}-\w{5}-\w{5}')
+LOG.debug("Telegram token: " + args.TELEGRAM_API_TOKEN)
+LOG.debug("User alias: " + args.USER_ALIAS)
 
-bot = telebot.TeleBot(TELEGRAM_API_TOKEN)
+bot = telebot.TeleBot(args.TELEGRAM_API_TOKEN)
 
 
-@bot.message_handler
-def handler(message):
-    cid = m.chat.id
-    if cid == TELEGRAM_USER_ID:
-        if m.text[0] == '/' or "!":
-            asf_command = m.text[1:]
-            response = execute_command(m, asf_command)
-            bot.reply_to(m, "```" + str(response) + "```", parse_mode="Markdown")
+#@bot.message_handler
+def handler(messages):
+    for message in messages:
+        fine_handler(message)
+
+
+def fine_handler(message):
+    LOG.debug("Received message: " + str(message))
+    cid = message.chat.id
+    username = message.chat.username
+    if username == args.USER_ALIAS:
+        first_char = message.text[0]
+        if first_char == '/' or first_char == '!':
+            user_input = message.text[1:]
+            slices = user_input.split(' ', 3)
+            asf_command = slices[0]
+            if len(slices) > 2:
+                target_bot = slices[1]
+                arguments = slices[2]
+                response = asf_connector.send_command(
+                    asf_command, bot=target_bot, arguments=arguments)
+            elif len(slices) > 1:
+                arguments = slices[1]
+                response = asf_connector.send_command(asf_command, arguments=arguments)
+            else:
+                response = asf_connector.send_command(asf_command)
+
+            bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
         else:
-            cdkeys = cdkey_pattern.findall(m.text)
+            cdkeys = _cdkey_pattern.findall(message.text)
             if len(cdkeys) > 0:
-                bot.reply_to(m, "Found: " + str(len(cdkeys)) + " cdkeys.")
+                bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
                 # auto redeem
                 for cdkey in cdkeys:
-                    command = "redeem " + asf_primary_bot + " " + cdkey
-                    response = execute_command(m, command)
+                    command = "redeem"
+                    response = asf_connector.send_command(command, arguments=cdkey)
                     bot.send_message(cid, "```" + str(response) + "```", parse_mode="Markdown")
 
             else:
-                log_line = m.text
+                LOG.debug(message.text)
     else:
-        log_line = "Not authorised: " + m.text
-        log(m, log_line)
+        LOG.debug("Not authorised: " + message.text)
         bot.send_message(cid, "https://www.youtube.com/watch?v=glojDYsGAvo")
 
 
-bot.set_update_listener(listener)
+bot.set_update_listener(handler)
 
 
-def execute_command(m, command):
-    os_command = asf_prepend + command + asf_append
-    log(m, "Executing: " + os_command)
-    stdout = str(subprocess.check_output(os_command.split(' ', 3)))
-    slices = stdout.split('WCF response received:', 1)
-    if(len(slices) > 1):
-        response = slices[1]
-    else:
-        response = stdout
-    return str(response).strip()
-
-
-def log(m, text):
-    cid = m.chat.id
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    username = get_chat_username(m)
-    log_message = ("[%s][%s][%s][%s]" % (now, cid, username, text))
-    f = open(log_path + log_file, 'a')
-    f.write(log_message + "\n")
-    f.close()
-
-
-def get_chat_username(m):
-    cid = m.chat.id
-    if cid > 0:
-        return m.chat.first_name
-    else:
-        return m.from_user.first_name
-
-
-#############################################
-# Main loop
-#############################################
-# Con esto, le decimos al bot que siga funcionando
-# incluso si encuentra algún fallo.
-while True:
-    try:
-        bot.polling(none_stop=True)
-    except Exception as e:
-        _error = True
-        bot.send_message(_boss, e)
+try:
+    LOG.debug("Polling started")
+    bot.polling(none_stop=True)
+except Exception as e:
+    LOG.error(str(e))
+    raise e

@@ -12,7 +12,7 @@ import re
 import argparse
 import logging
 import logger
-from IPCProtocolHandler import IPCConnectionHandler
+from ASFConnector import ASFConnector
 
 LOG = logging.getLogger('ASFBot')
 
@@ -37,7 +37,7 @@ for logger in LOG.handlers:
 LOG.info("Starting up bot...")
 LOG.debug("ASF IPC host: " + args.host)
 LOG.debug("ASF IPC port: " + args.port)
-ipc_connection_handler = IPCConnectionHandler(args.host, args.port)
+ipc_connection_handler = ASFConnector(args.host, args.port)
 exit()
 
 _last_message = None

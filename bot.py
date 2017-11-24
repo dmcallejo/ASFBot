@@ -20,8 +20,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("-v", "--verbosity", help="Defines log verbosity",
                     choices=['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG'], default='INFO')
-parser.add_argument("--port", help="ASF IPC host. Default: 127.0.0.1", default='127.0.0.1')
-parser.add_argument("--host", help="ASF IPC port. Default: 1242", default='1242')
+parser.add_argument("--host", help="ASF IPC host. Default: 127.0.0.1", default='127.0.0.1')
+parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242')
 parser.add_argument("TELEGRAM_API_TOKEN", type=str, help="Telegram API token given by @botfather.")
 parser.add_argument("USER_ALIAS", type=str, help="Telegram alias of the bot owner.")
 
@@ -37,7 +37,8 @@ for logger in LOG.handlers:
 LOG.info("Starting up bot...")
 LOG.debug("ASF IPC host: " + args.host)
 LOG.debug("ASF IPC port: " + args.port)
-ipc_connection_handler = ASFConnector(args.host, args.port)
+asf_connector = ASFConnector(args.host, args.port)
+asf_connector.send_command("status")
 exit()
 
 _last_message = None

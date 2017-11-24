@@ -1,26 +1,23 @@
 import logging
+import requests
 
 
 class IPCProtocolHandler:
     LOG = logging.getLogger('ASFBot.IPCProtocolHandler')
 
     def __init__(self, host, port, path='/'):
-        self.host = host
-        self.port = port
-        self.path = path
+        self.base_url = 'http://' + host + ':' + port + path
+        self.LOG.debug("Initialized. Host: " + self.base_url)
 
-        self.LOG.debug("Initialized. Host: " + host +
-                       ". Port: " + port + ". Path: " + path)
-        self.connection_handler = IPCConnectionHandler(host, port, path)
-
-
-class IPCConnectionHandler:
-    LOG = logging.getLogger('ASFBot.IPCConnectionHandler')
-
-    def __init__(self, host, port, path):
-        self.host = host
-        self.port = port
-        self.path = path
-
-        self.LOG.debug("Initialized. Host: " + host +
-                       ". Port: " + port + ". Path: " + path)
+    def get(self, resource, parameters={}):
+        if not isinstance(parameters, dict):
+            message = "\"parameters\" variable must be a dictionary"
+            self.LOG.error(message)
+            raise TypeError(message)
+        url = self.base_url + resource
+        self.LOG.debug("Requesting " + url + " with parameters" + str(parameters))
+        response = requests.get(url, params=parameters)
+        response.raise_for_status()
+        self.LOG.debug(response.url)
+        self.LOG.debug(response.text)
+        return response.text

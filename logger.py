@@ -1,5 +1,5 @@
 import logging
-DEFAULT_LOG_LEVEL=logging.INFO
+DEFAULT_LOG_LEVEL = logging.DEBUG
 
 # create logger with 'spam_application'
 logger = logging.getLogger('ASFBot')

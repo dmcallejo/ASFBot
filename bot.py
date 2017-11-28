@@ -30,7 +30,6 @@ parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242'
 parser.add_argument("--token", type=str,
                     help="Telegram API token given by @botfather.", default=None)
 parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
-
 args = parser.parse_args()
 
 numeric_level = getattr(logging, args.verbosity.upper(), None)

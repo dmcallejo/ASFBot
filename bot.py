@@ -14,6 +14,11 @@ import logging
 import logger
 from ASFConnector import ASFConnector
 
+_REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
+_REGEX_COMMAND = '^[!/].*$'
+_ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
+_ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
+
 LOG = logging.getLogger('ASFBot')
 
 parser = argparse.ArgumentParser()
@@ -22,9 +27,9 @@ parser.add_argument("-v", "--verbosity", help="Defines log verbosity",
                     choices=['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG'], default='INFO')
 parser.add_argument("--host", help="ASF IPC host. Default: 127.0.0.1", default='127.0.0.1')
 parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242')
-parser.add_argument("TELEGRAM_API_TOKEN", type=str, help="Telegram API token given by @botfather.")
-parser.add_argument("USER_ALIAS", type=str, help="Telegram alias of the bot owner.")
-
+parser.add_argument("--token", type=str,
+                    help="Telegram API token given by @botfather.", default=None)
+parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
 
 args = parser.parse_args()
 
@@ -34,71 +39,98 @@ if not isinstance(numeric_level, int):
 for logger in LOG.handlers:
     logger.setLevel(numeric_level)
 
+try:
+    args.token = os.environ[_ENV_TELEGRAM_BOT_TOKEN]
+except KeyError as key_error:
+    if not args.token:
+        LOG.critical(
+            "No telegram bot token provided. Please do so using --token argument or %s environment variable.", _ENV_TELEGRAM_BOT_TOKEN)
+        exit(1)
+
+try:
+    args.alias = os.environ[_ENV_TELEGRAM_USER_ALIAS]
+except KeyError as key_error:
+    if not args.alias:
+        LOG.critical(
+            "No telegram user alias provided. Please do so using --alias argument or %s environment variable.", _ENV_TELEGRAM_USER_ALIAS)
+        exit(1)
+if args.alias[0] == '@':
+    args.alias = args.alias[1:]
+
 LOG.info("Starting up bot...")
-LOG.debug("ASF IPC host: " + args.host)
-LOG.debug("ASF IPC port: " + args.port)
+LOG.debug("Telegram token: %s", args.token)
+LOG.debug("User alias: %s", args.alias)
+LOG.debug("ASF IPC host: %s", args.host)
+LOG.debug("ASF IPC port: %s", args.port)
+exit(0)
+
+
 asf_connector = ASFConnector(args.host, args.port)
-asf_connector.send_command("status")
 
-_cdkey_pattern = re.compile('\w{5}-\w{5}-\w{5}')
+try:
+    asf_connector.send_command("status")
+except Exception as e:
+    LOG.critical("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
+                 args.host, args.host, str(e))
+    exit(1)
 
-LOG.debug("Telegram token: " + args.TELEGRAM_API_TOKEN)
-LOG.debug("User alias: " + args.USER_ALIAS)
-
-bot = telebot.TeleBot(args.TELEGRAM_API_TOKEN)
-
-
-#@bot.message_handler
-def handler(messages):
-    for message in messages:
-        fine_handler(message)
+bot = telebot.TeleBot(args.token)
 
 
-def fine_handler(message):
-    LOG.debug("Received message: " + str(message))
-    cid = message.chat.id
+def is_user_message(message):
+    """ Returns if a message is from the owner of the bot comparing it to the user alias provided on startup. """
     username = message.chat.username
-    if username == args.USER_ALIAS:
-        first_char = message.text[0]
-        if first_char == '/' or first_char == '!':
-            user_input = message.text[1:]
-            slices = user_input.split(' ', 3)
-            asf_command = slices[0]
-            if len(slices) > 2:
-                target_bot = slices[1]
-                arguments = slices[2]
-                response = asf_connector.send_command(
-                    asf_command, bot=target_bot, arguments=arguments)
-            elif len(slices) > 1:
-                arguments = slices[1]
-                response = asf_connector.send_command(asf_command, arguments=arguments)
-            else:
-                response = asf_connector.send_command(asf_command)
+    return username == args.alias
 
-            bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
-        else:
-            cdkeys = _cdkey_pattern.findall(message.text)
-            if len(cdkeys) > 0:
-                bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
-                # auto redeem
-                for cdkey in cdkeys:
-                    command = "redeem"
-                    response = asf_connector.send_command(command, arguments=cdkey)
-                    bot.send_message(cid, "```" + str(response) + "```", parse_mode="Markdown")
 
-            else:
-                LOG.debug(message.text)
+@async()
+@bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND)
+def command_handler(message):
+    """
+    Async handler only for user commands.
+    """
+    LOG.debug("Received message: %s", str(message))
+    cid = message.chat.id
+    user_input = message.text[1:]
+    slices = user_input.split(' ', 3)
+    asf_command = slices[0]
+    # this is a mess
+    if len(slices) > 2:
+        target_bot = slices[1]
+        arguments = slices[2]
+        response = asf_connector.send_command(
+            asf_command, bot=target_bot, arguments=arguments)
+    elif len(slices) > 1:
+        arguments = slices[1]
+        response = asf_connector.send_command(asf_command, arguments=arguments)
     else:
-        LOG.debug("Not authorised: " + message.text)
-        bot.send_message(cid, "https://www.youtube.com/watch?v=glojDYsGAvo")
+        response = asf_connector.send_command(asf_command)
+
+    bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
 
 
-bot.set_update_listener(handler)
+@bot.message_handler(content_types=['text'])
+def check_for_cdkeys(message):
+    """
+    Sync handler for the rest of the messages. It searchs for cdkeys and redeems them.
+    """
+    cdkeys = set(_REGEX_CDKEY.findall(message.text))
+    cid = message.chat.id
+    if len(cdkeys) > 0:
+        bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
+        # auto redeem
+        for cdkey in cdkeys:
+            command = "redeem"
+            response = asf_connector.send_command(command, arguments=cdkey)
+            bot.send_message(cid, "```" + str(response) + "```", parse_mode="Markdown")
+    else:
+        LOG.debug("Bypassed message: %s \n from user alias %s.",
+                  message.text, message.chat.username)
 
 
 try:
     LOG.debug("Polling started")
     bot.polling(none_stop=True)
 except Exception as e:
-    LOG.error(str(e))
-    raise e
+    LOG.critical(str(e))
+    LOG.exception(e)

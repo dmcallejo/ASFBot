@@ -7,7 +7,7 @@ class IPCProtocolHandler:
 
     def __init__(self, host, port, path='/'):
         self.base_url = 'http://' + host + ':' + port + path
-        self.LOG.debug("Initialized. Host: " + self.base_url)
+        self.LOG.debug("Initialized. Host: %s", self.base_url)
 
     def get(self, resource, parameters={}):
         if not isinstance(parameters, dict):
@@ -15,7 +15,7 @@ class IPCProtocolHandler:
             self.LOG.error(message)
             raise TypeError(message)
         url = self.base_url + resource
-        self.LOG.debug("Requesting " + url + " with parameters" + str(parameters))
+        self.LOG.debug("Requesting %s with parameters %s", url, str(parameters))
         response = requests.get(url, params=parameters)
         response.raise_for_status()
         self.LOG.debug(response.url)

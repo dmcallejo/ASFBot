@@ -61,8 +61,6 @@ LOG.debug("Telegram token: %s", args.token)
 LOG.debug("User alias: %s", args.alias)
 LOG.debug("ASF IPC host: %s", args.host)
 LOG.debug("ASF IPC port: %s", args.port)
-exit(0)
-
 
 asf_connector = ASFConnector(args.host, args.port)
 

@@ -13,6 +13,8 @@ Control your ASF instance anywhere.
    - ```--token``` : Telegram API token given by @botfather (**mandatory**).
    - ```--alias``` : Telegram alias of the bot owner. Only this user can send commands to ASF. (**mandatory**).
 
+Once the bot has started and verified the connection to the ASF instance, you can send commands through your telegram bot using standard ASF notation (i.e.: ```!status asf```) or Telegram notation (i.e.: ```/status asf```). 
+The bot also reads messages containing Steam cd-keys. It will automatically parse every key and activate them on your accounts with ```!redeem asf {{parsed_cdkey}}``` notifying you the process.
 
 ## Quickstart (with docker)
 1. Create a bot via [@botfather](t.me/BotFather).

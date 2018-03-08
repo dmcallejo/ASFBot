@@ -25,7 +25,7 @@ class ASFConnector:
             response = self.connection_handler.post(resource)
         except requests.exceptions.ConnectionError as connection_error:
             self.LOG.error("Error sending command %s: %s",
-                           parameters["command"], str(connection_error))
+                           command, str(connection_error))
             raise connection_error
         json_response = json.loads(response)
         return json_response["Result"]

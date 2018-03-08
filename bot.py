@@ -68,7 +68,7 @@ try:
     asf_connector.send_command("status")
 except Exception as e:
     LOG.critical("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
-                 args.host, args.host, str(e))
+                 args.host, args.port, str(e))
     exit(1)
 
 bot = telebot.TeleBot(args.token)

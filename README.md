@@ -8,10 +8,19 @@ Control your ASF instance anywhere.
 ## Usage:
  - Executable: (python3) bot.py
  - Arguments:
-   - ```--host``` : ASF IPC host (defaults to ```127.0.0.1```)
-   - ```--port``` : ASF IPC listening port (defaults to ```1242```)
    - ```--token``` : Telegram API token given by @botfather (**mandatory**).
    - ```--alias``` : Telegram alias of the bot owner. Only this user can send commands to ASF. (**mandatory**).
+   - ```--host``` : ASF IPC host (defaults to ```127.0.0.1```)
+   - ```--port``` : ASF IPC listening port (defaults to ```1242```)
+   - ```--password``` : ASF IPC password (if you have set one)
+   - ```--verbosity```: Log verbosity (DEBUG, INFO, WARN, ERROR)
+
+You can also use **environment variables** to configure the bot. Environment variables would override any command argument set. The naming is pretty self-explanatory:
+   - ```TELEGRAM_BOT_TOKEN```
+   - ```TELEGRAM_USER_ALIAS```
+   - ```ASF_IPC_HOST```
+   - ```ASF_IPC_PORT```
+   - ```ASF_IPC_PASSWORD```
 
 Once the bot has started and verified the connection to the ASF instance, you can send commands through your telegram bot using standard ASF notation (i.e.: ```!status asf```) or Telegram notation (i.e.: ```/status asf```). 
 The bot also reads messages containing Steam cd-keys. It will automatically parse every key and activate them on your accounts with ```!redeem asf {{parsed_cdkey}}``` notifying you the process.
@@ -23,7 +32,7 @@ The bot also reads messages containing Steam cd-keys. It will automatically pars
 
 ## Notes
 I recommend running it via its Docker image. Here it is an example docker-compose.yml to run bot ASF and the bot on Docker. Copy this to a file named ```docker-compose.yml```, fill the appropriate missing data:
- - (1) your ASF/config directory path
+ - (1) your ASF/config directory path (remember to include in your ASF.json a permissive IPCPrefix like ```http://*:1242/```)
  - (2) Your Telegram bot token
  - (3) Your Telegram user alias
 

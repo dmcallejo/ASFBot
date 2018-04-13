@@ -18,6 +18,9 @@ _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
 _REGEX_COMMAND = '^[!/].*$'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
+_ENV_ASF_IPC_HOST = "ASF_IPC_HOST"
+_ENV_ASF_IPC_PORT = "ASF_IPC_PORT"
+_ENV_ASF_IPC_PASSWORD = "ASF_IPC_PASSWORD"
 
 LOG = logging.getLogger('ASFBot')
 
@@ -27,6 +30,7 @@ parser.add_argument("-v", "--verbosity", help="Defines log verbosity",
                     choices=['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG'], default='INFO')
 parser.add_argument("--host", help="ASF IPC host. Default: 127.0.0.1", default='127.0.0.1')
 parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242')
+parser.add_argument("--password", help="ASF IPC password.", default=None)
 parser.add_argument("--token", type=str,
                     help="Telegram API token given by @botfather.", default=None)
 parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
@@ -38,6 +42,7 @@ if not isinstance(numeric_level, int):
 for logger in LOG.handlers:
     logger.setLevel(numeric_level)
 
+# Telegram related environment variables.
 try:
     args.token = os.environ[_ENV_TELEGRAM_BOT_TOKEN]
 except KeyError as key_error:
@@ -53,6 +58,22 @@ except KeyError as key_error:
         LOG.critical(
             "No telegram user alias provided. Please do so using --alias argument or %s environment variable.", _ENV_TELEGRAM_USER_ALIAS)
         exit(1)
+
+# ASF IPC related environment variables.
+try:
+    args.host = os.environ[_ENV_ASF_IPC_HOST]
+except KeyError as key_error:
+    pass
+try:
+    args.port = os.environ[_ENV_ASF_IPC_PORT]
+except KeyError as key_error:
+    pass
+try:
+    args.password = os.environ[_ENV_ASF_IPC_PASSWORD]
+except KeyError as key_error:
+    if not args.password:
+        LOG.debug("No IPC Password provided.")
+    pass
 if args.alias[0] == '@':
     args.alias = args.alias[1:]
 
@@ -62,7 +83,7 @@ LOG.debug("User alias: %s", args.alias)
 LOG.debug("ASF IPC host: %s", args.host)
 LOG.debug("ASF IPC port: %s", args.port)
 
-asf_connector = ASFConnector(args.host, args.port)
+asf_connector = ASFConnector(args.host, args.port, password=args.password)
 
 try:
     asf_connector.send_command("status")

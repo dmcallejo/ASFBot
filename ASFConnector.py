@@ -7,13 +7,13 @@ from IPCProtocol import IPCProtocolHandler
 class ASFConnector:
     LOG = logging.getLogger('ASFBot.' + __name__)
 
-    def __init__(self, host='127.0.0.1', port='1242', path='/Api'):
+    def __init__(self, host='127.0.0.1', port='1242', path='/Api', password=None):
         self.host = host
         self.port = port
         self.path = path
 
         self.LOG.debug(__name__ + " initialized. Host: '%s'. Port: '%s'", host, port)
-        self.connection_handler = IPCProtocolHandler(host, port, path)
+        self.connection_handler = IPCProtocolHandler(host, port, path, password)
 
     def send_command(self, command, arguments='', bot='ASF'):
         self.LOG.debug("Send command: " + command + ", bot: " + bot + ", arguments: " + arguments)

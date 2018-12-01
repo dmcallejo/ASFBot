@@ -4,14 +4,9 @@ import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 import telebot
-from telebot.util import async
-from datetime import datetime
-import time
-import subprocess
 import re
 import argparse
 import logging
-import logger
 from ASFConnector import ASFConnector
 
 _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')

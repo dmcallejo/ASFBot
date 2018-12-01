@@ -7,7 +7,7 @@ class PersistenceTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.conn = ASFConnector.ASFConnector('192.168.1.254')
+        cls.conn = ASFConnector.ASFConnector('10.8.0.1')
 
     def test_get_asf_info(self):
         info = self.conn.get_asf_info()

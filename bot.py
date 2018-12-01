@@ -15,7 +15,7 @@ import logger
 from ASFConnector import ASFConnector
 
 _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
-_REGEX_COMMAND = '^[!/].*$'
+_REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
 _ENV_ASF_IPC_HOST = "ASF_IPC_HOST"
@@ -86,7 +86,11 @@ LOG.debug("ASF IPC port: %s", args.port)
 asf_connector = ASFConnector(args.host, args.port, password=args.password)
 
 try:
-    asf_connector.send_command("status")
+    asf_info = asf_connector.get_asf_info()
+    LOG.info('ASF Instance replied: {}'.format(asf_info['Message']))
+    if not asf_info['Success']:
+        LOG.warning('ASF Instance message was unsuccesful. %s', str(asf_info))
+
 except Exception as e:
     LOG.critical("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
                  args.host, args.port, str(e))
@@ -101,8 +105,8 @@ def is_user_message(message):
     return username == args.alias
 
 
-@async()
-@bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND)
+#@async()
+#@bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND)
 def command_handler(message):
     """
     Async handler only for user commands.
@@ -127,6 +131,16 @@ def command_handler(message):
     bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
 
 
+@bot.message_handler(commands=['redeem'])
+def redeem_command(message):
+    LOG.debug("Received redeem message: %s", str(message))
+    cid = message.chat.id
+    match = re.search(_REGEX_COMMAND, message.text)
+    response = asf_connector.bot_redeem(match.group('bot') if match.group('bot') else 'ASF', match.group('arg'))
+    LOG.debug("Response to redeem message: %s", str(response))
+    bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
+
+
 @bot.message_handler(content_types=['text'])
 def check_for_cdkeys(message):
     """
@@ -135,12 +149,9 @@ def check_for_cdkeys(message):
     cdkeys = set(_REGEX_CDKEY.findall(message.text))
     cid = message.chat.id
     if len(cdkeys) > 0:
-        bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
-        # auto redeem
-        for cdkey in cdkeys:
-            command = "redeem"
-            response = asf_connector.send_command(command, arguments=cdkey)
-            bot.send_message(cid, "```" + str(response) + "```", parse_mode="Markdown")
+        #bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
+        response = asf_connector.bot_redeem('ASF', cdkeys)
+        bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
     else:
         LOG.debug("Bypassed message: %s \n from user alias %s.",
                   message.text, message.chat.username)

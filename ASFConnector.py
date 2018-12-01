@@ -27,24 +27,30 @@ class ASFConnector:
 
     def bot_redeem(self, bot, keys):
         """ Redeems cd-keys on given bot. """
-        assert type(keys) is list or type(keys) is str
+        LOG.debug('bot_redeem: bot {}, keys {}'.format(bot, keys))
+        assert type(keys) is set or type(keys) is str
+        keys = list(keys)
         resource = '/Bot/' + bot + '/Redeem'
         if type(keys) is str:
             keys = [keys]
         data = {'KeysToRedeem': keys}
         response = self.connection_handler.post(resource, payload=data)
-        results = response['Result']
-        message = ""
-        for bot in results:
-            message += "Bot {}: \n".format(bot)
-            for key in results[bot]:
-                if results[bot][key]['Items']:
-                    items = ''
-                    for item in results[bot][key]['Items']:
-                        items += '[{}, {}] '.format(item, results[bot][key]['Items'][item])
-                    message += "\t```{}``` {}:{}/{}\n".format(key, items, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
-                else:
-                    message += "\t```{}``` {}/{}\n".format(key, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
+        if response['Result']:
+            results = response['Result']
+            message = ""
+            for bot in results:
+                message += "Bot {}: \n".format(bot)
+                for key in results[bot]:
+                    if results[bot][key]:
+                        if results[bot][key]['Items']:
+                            items = ''
+                            for item in results[bot][key]['Items']:
+                                items += '[{}, {}] '.format(item, results[bot][key]['Items'][item])
+                            message += "\t[{}] {}:{}/{}\n".format(key, items, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
+                        else:
+                            message += "\t[{}] {}/{}\n".format(key, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
+        else:
+            message = 'Redeem failed: {}'.format(response['Message'])
         return message
 
     def send_command(self, command, arguments='', bot='ASF'):

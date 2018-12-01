@@ -28,7 +28,6 @@ class IPCProtocolHandler:
         url = self.base_url + resource  # TODO: refactor
         LOG.debug("Requesting %s with parameters %s", url, str(parameters))
         response = self.session.get(url, params=parameters)
-        response.raise_for_status()
         LOG.debug(response.url)
         LOG.debug(response.json())
         return response.json()
@@ -41,7 +40,6 @@ class IPCProtocolHandler:
         url = self.base_url + resource  # TODO: refactor
         LOG.debug("Requesting %s with payload %s", url, str(payload))
         response = self.session.post(url, json=payload)
-        response.raise_for_status()
         LOG.debug(response.url)
         LOG.debug(response.json())
         return response.json()

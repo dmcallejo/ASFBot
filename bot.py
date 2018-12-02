@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
 import telebot
 import re
 import argparse
 import logging
 from ASFConnector import ASFConnector
+
 
 _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
 _REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
@@ -129,9 +129,13 @@ def command_handler(message):
 @bot.message_handler(commands=['redeem'])
 def redeem_command(message):
     LOG.debug("Received redeem message: %s", str(message))
-    cid = message.chat.id
     match = re.search(_REGEX_COMMAND, message.text)
-    response = asf_connector.bot_redeem(match.group('bot') if match.group('bot') else 'ASF', match.group('arg'))
+    if not match:
+        bot.reply_to(message, "Missing arguments. Usage:\n`/redeem <bot> <keys>`", parse_mode="Markdown")
+        return
+    bots = match.group('bot') if match.group('bot') else 'ASF'
+    keys = match.group('arg')
+    response = asf_connector.bot_redeem(bots, keys)
     LOG.debug("Response to redeem message: %s", str(response))
     bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
 

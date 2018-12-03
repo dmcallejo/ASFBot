@@ -1,4 +1,4 @@
-import logging
+import logger
 import requests
 
 LOG = None
@@ -12,7 +12,7 @@ class IPCProtocolHandler:
 
     def __init__(self, host, port, path='/', password=None):
         global LOG
-        LOG = logging.getLogger('ASFBot.' + __name__)
+        LOG = logger.get_logger(__name__)
         self.base_url = 'http://' + host + ':' + port + path
         if password:
             self.headers[self.AUTH_HEADER] = password

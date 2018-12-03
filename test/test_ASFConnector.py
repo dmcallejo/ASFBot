@@ -1,12 +1,13 @@
 import unittest
 import ASFConnector
-import logging
+import logger
 
 
 class PersistenceTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        logger.set_logger('ASFBotTest')
         cls.conn = ASFConnector.ASFConnector('10.8.0.1')
 
     def test_get_asf_info(self):

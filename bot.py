@@ -5,19 +5,21 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 import telebot
 import re
 import argparse
+import logger
 import logging
 from ASFConnector import ASFConnector
 
 
 _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
-_REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
+_REGEX_COMMAND_ARGS = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
+_REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
 _ENV_ASF_IPC_HOST = "ASF_IPC_HOST"
 _ENV_ASF_IPC_PORT = "ASF_IPC_PORT"
 _ENV_ASF_IPC_PASSWORD = "ASF_IPC_PASSWORD"
 
-LOG = logging.getLogger('ASFBot')
+LOG = logger.set_logger('ASFBot')
 
 parser = argparse.ArgumentParser()
 
@@ -31,11 +33,7 @@ parser.add_argument("--token", type=str,
 parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
 args = parser.parse_args()
 
-numeric_level = getattr(logging, args.verbosity.upper(), None)
-if not isinstance(numeric_level, int):
-    raise ValueError('Invalid log level: %s' % args.verbosity)
-for logger in LOG.handlers:
-    logger.setLevel(numeric_level)
+logger.set_level(args.verbosity)
 
 # Telegram related environment variables.
 try:
@@ -126,10 +124,23 @@ def command_handler(message):
     bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
 
 
+@bot.message_handler(commands=['status'])
+def redeem_command(message):
+    LOG.debug("Received status message: %s", str(message))
+    match = re.search(_REGEX_COMMAND, message.text)
+    if not match:
+        bot.reply_to(message, "Invalid command. Usage:\n`/status <bot>`", parse_mode="Markdown")
+        return
+    bot_arg = match.group('bot') if match.group('bot') else 'ASF'
+    response = asf_connector.get_bot_info(bot_arg)
+    LOG.debug("Response to redeem message: %s", str(response))
+    bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
+
+
 @bot.message_handler(commands=['redeem'])
 def redeem_command(message):
     LOG.debug("Received redeem message: %s", str(message))
-    match = re.search(_REGEX_COMMAND, message.text)
+    match = re.search(_REGEX_COMMAND_ARGS, message.text)
     if not match:
         bot.reply_to(message, "Missing arguments. Usage:\n`/redeem <bot> <keys>`", parse_mode="Markdown")
         return

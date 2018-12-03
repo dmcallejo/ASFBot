@@ -1,4 +1,4 @@
-import logging
+import logger
 import requests
 import json
 from IPCProtocol import IPCProtocolHandler
@@ -10,7 +10,7 @@ class ASFConnector:
 
     def __init__(self, host='127.0.0.1', port='1242', path='/Api', password=None):
         global LOG
-        LOG = logging.getLogger('ASFBot.' + __name__)
+        LOG = logger.get_logger(__name__)
 
         self.host = host
         self.port = port
@@ -24,6 +24,51 @@ class ASFConnector:
         data = self.connection_handler.get('/ASF')
         LOG.debug(data)
         return data
+
+    def get_bot_info(self, bot):
+        """ Fetches common info related to given bots. """
+        LOG.debug('get_bot_info: bot {}'.format(bot))
+        resource = '/Bot/' + bot
+        response = self.connection_handler.get(resource)
+        if response['Result']:
+            message = ""
+            for bot_name in response['Result']:
+                message += 'Bot {}: '.format(bot_name)
+                bot = response['Result'][bot_name]
+                if bot['IsConnectedAndLoggedOn']:
+                    cards_farmer = bot['CardsFarmer']
+                    farm_message = ""
+                    if cards_farmer['Paused']:
+                        farm_message += 'Farming paused.'
+                    elif cards_farmer['CurrentGamesFarming']:
+                        farm_message += 'Currently farming games:'
+                    for current_games in cards_farmer['CurrentGamesFarming']:
+                        appid = current_games['AppID']
+                        appname = current_games['GameName']
+                        cards_remaining = current_games['CardsRemaining']
+                        farm_message += '\n\t[{}/{}] {} cards remaining.'.format(appid, appname, cards_remaining)
+                    if len(cards_farmer['GamesToFarm']) > 0:
+                        farm_message += '{} games to farm '
+                        for games_to_farm in cards_farmer['GamesToFarm']:
+                            appid = games_to_farm['AppID']
+                            appname = games_to_farm['GameName']
+                            farm_message += '[{}/{}] '.format(appid, appname)
+                    time_remaining = cards_farmer['TimeRemaining']
+                    if time_remaining != '00:00:00':
+                        farm_message += 'Time remaining: {}'.format(time_remaining)
+                    if len(farm_message) == 0:
+                        farm_message += 'Idle.'
+                    message += farm_message + '\n'
+                else:
+                    if len(bot['BotConfig']) == 0:
+                        message += 'Not configured.\n'
+                    else:
+                        message += 'Offline.'
+        elif response['Success']:
+            message = 'Bot {} not found.'.format(bot)
+        else:
+            message = 'Getting bot info failed: {}'.format(response['Message'])
+        return message
 
     def bot_redeem(self, bot, keys):
         """ Redeems cd-keys on given bot. """

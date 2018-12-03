@@ -33,10 +33,11 @@ class IPCProtocolHandler:
         return response.json()
 
     def post(self, resource, payload=None):
-        if not isinstance(payload, dict):
-            message = "\"payload\" must be a dictionary"
-            LOG.error(message)
-            raise TypeError(message)
+        if payload:
+            if not isinstance(payload, dict):
+                message = "\"payload\" must be a dictionary"
+                LOG.error(message)
+                raise TypeError(message)
         url = self.base_url + resource  # TODO: refactor
         LOG.debug("Requesting %s with payload %s", url, str(payload))
         response = self.session.post(url, json=payload)

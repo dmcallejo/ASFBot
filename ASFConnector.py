@@ -98,20 +98,22 @@ class ASFConnector:
             message = 'Redeem failed: {}'.format(response['Message'])
         return message
 
-    def send_command(self, command, arguments='', bot='ASF'):
-        LOG.debug("Send command: " + command + ", bot: " + bot + ", arguments: " + arguments)
-        asf_command_resource = '/Command'
-        user_command_resource = '/' + "+".join(str(command).split())
-        user_arguments_resource = '+' + bot + ' ' + "+".join(str(arguments).split())
-        resource = asf_command_resource + user_command_resource + user_arguments_resource.strip()
-        try:
-            response = self.connection_handler.post(resource)
-        except requests.exceptions.ConnectionError as connection_error:
-            LOG.error("Error sending command %s: %s",
-                      command, str(connection_error))
-            raise connection_error
-        json_response = json.loads(response)
-        return json_response["Result"]
+    def send_command(self, command):
+        """
+        This API endpoint is supposed to be entirely replaced by ASF actions available under /Api/ASF/{action} and /Api/Bot/{bot}/{action}.
+        You should use “given bot” commands when executing this endpoint, omitting targets of the command will cause the command to be executed on first defined bot
+        """
+        LOG.debug("Send command: {}".format(command))
+        asf_command_resource = '/Command/'
+        resource = asf_command_resource + command
+        response = self.connection_handler.post(resource)
+        message = ""
+        if response['Success']:
+            message += response['Result']
+        else:
+            message += 'Command unsuccessful: {}'.format(response['Message'])
+
+        return message
 
 
 PurchaseResultDetail = {

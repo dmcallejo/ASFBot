@@ -11,7 +11,8 @@ from ASFConnector import ASFConnector
 
 
 _REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
-_REGEX_COMMAND_ARGS = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
+_REGEX_COMMAND_BOT_ARGS = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
+_REGEX_COMMAND_RAW = '^[/!](?P<input>(?P<command>\w+).*)'
 _REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
@@ -98,33 +99,7 @@ def is_user_message(message):
     return username == args.alias
 
 
-#@async()
-#@bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND)
-def command_handler(message):
-    """
-    Async handler only for user commands.
-    """
-    LOG.debug("Received message: %s", str(message))
-    cid = message.chat.id
-    user_input = message.text[1:]
-    slices = user_input.split(' ', 3)
-    asf_command = slices[0]
-    # this is a mess
-    if len(slices) > 2:
-        target_bot = slices[1]
-        arguments = slices[2]
-        response = asf_connector.send_command(
-            asf_command, bot=target_bot, arguments=arguments)
-    elif len(slices) > 1:
-        arguments = slices[1]
-        response = asf_connector.send_command(asf_command, arguments=arguments)
-    else:
-        response = asf_connector.send_command(asf_command)
-
-    bot.reply_to(message, "```" + str(response) + "```", parse_mode="Markdown")
-
-
-@bot.message_handler(commands=['status'])
+@bot.message_handler(func=is_user_message, commands=['status'])
 def redeem_command(message):
     LOG.debug("Received status message: %s", str(message))
     match = re.search(_REGEX_COMMAND, message.text)
@@ -140,7 +115,7 @@ def redeem_command(message):
 @bot.message_handler(commands=['redeem'])
 def redeem_command(message):
     LOG.debug("Received redeem message: %s", str(message))
-    match = re.search(_REGEX_COMMAND_ARGS, message.text)
+    match = re.search(_REGEX_COMMAND_BOT_ARGS, message.text)
     if not match:
         bot.reply_to(message, "Missing arguments. Usage:\n`/redeem <bot> <keys>`", parse_mode="Markdown")
         return
@@ -151,15 +126,28 @@ def redeem_command(message):
     bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
 
 
+@bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND_RAW)
+def command_handler(message):
+    """
+    Handler only for unsupported commands.
+    """
+    LOG.debug("Received command: %s", str(message))
+    match = re.search(_REGEX_COMMAND_RAW, message.text)
+    if not match:
+        bot.reply_to(message, "Invalid command.", parse_mode="Markdown")
+        return
+    command = match.group('input')
+    response = asf_connector.send_command(command)
+    bot.reply_to(message, response, parse_mode="Markdown")
+
+
 @bot.message_handler(content_types=['text'])
 def check_for_cdkeys(message):
     """
     Sync handler for the rest of the messages. It searchs for cdkeys and redeems them.
     """
     cdkeys = set(_REGEX_CDKEY.findall(message.text))
-    cid = message.chat.id
     if len(cdkeys) > 0:
-        #bot.reply_to(message, "Found: " + str(len(cdkeys)) + " cdkeys.")
         response = asf_connector.bot_redeem('ASF', cdkeys)
         bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
     else:

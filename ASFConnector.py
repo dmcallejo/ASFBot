@@ -74,7 +74,7 @@ class ASFConnector:
         """ Redeems cd-keys on given bot. """
         LOG.debug('bot_redeem: bot {}, keys {}'.format(bot, keys))
         assert type(keys) is set or type(keys) is str
-        keys = list(keys)
+        keys = [keys]
         resource = '/Bot/' + bot + '/Redeem'
         if type(keys) is str:
             keys = [keys]
@@ -83,17 +83,21 @@ class ASFConnector:
         if response['Result']:
             results = response['Result']
             message = ""
-            for bot in results:
-                message += "Bot {}: \n".format(bot)
-                for key in results[bot]:
-                    if results[bot][key]:
-                        if results[bot][key]['Items']:
+            for bot_name in results:
+                message += "Bot {}: \n".format(bot_name)
+                bot = results[bot_name]
+                for key in bot:
+                    if bot[key]:
+                        if bot[key]['Items']:
                             items = ''
-                            for item in results[bot][key]['Items']:
-                                items += '[{}, {}] '.format(item, results[bot][key]['Items'][item])
-                            message += "\t[{}] {}:{}/{}\n".format(key, items, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
+                            for item in bot[key]['Items']:
+                                items += '[{}, {}] '.format(item, bot[key]['Items'][item])
+                            message += "\t[{}] {}:{}/{}\n".format(
+                                key, items, Result[bot[key]['Result']],
+                                PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
                         else:
-                            message += "\t[{}] {}/{}\n".format(key, Result[results[bot][key]['Result']], PurchaseResultDetail[results[bot][key]['PurchaseResultDetail']])
+                            message += "\t[{}] {}/{}\n".format(
+                                key, Result[bot[key]['Result']], PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
         else:
             message = 'Redeem failed: {}'.format(response['Message'])
         return message

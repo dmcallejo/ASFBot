@@ -74,11 +74,14 @@ class ASFConnector:
         """ Redeems cd-keys on given bot. """
         LOG.debug('bot_redeem: bot {}, keys {}'.format(bot, keys))
         assert type(keys) is set or type(keys) is str
-        keys = [keys]
         resource = '/Bot/' + bot + '/Redeem'
         if type(keys) is str:
-            keys = [keys]
-        data = {'KeysToRedeem': keys}
+            payload_keys = [keys]
+        else:
+            payload_keys = []
+            for key in keys:
+                payload_keys.append(key)
+        data = {'KeysToRedeem': payload_keys}
         response = self.connection_handler.post(resource, payload=data)
         if response['Result']:
             results = response['Result']

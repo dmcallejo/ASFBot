@@ -48,11 +48,12 @@ class ASFConnector:
                         cards_remaining = current_games['CardsRemaining']
                         farm_message += '\n\t[{}/{}] {} cards remaining.'.format(appid, appname, cards_remaining)
                     if len(cards_farmer['GamesToFarm']) > 0:
-                        farm_message += '{} games to farm '
+                        farm_message += ' {} game(s) to farm ('.format(len(cards_farmer['GamesToFarm']))
                         for games_to_farm in cards_farmer['GamesToFarm']:
                             appid = games_to_farm['AppID']
                             appname = games_to_farm['GameName']
                             farm_message += '[{}/{}] '.format(appid, appname)
+                        farm_message = farm_message[:-1] + "). "
                     time_remaining = cards_farmer['TimeRemaining']
                     if time_remaining != '00:00:00':
                         farm_message += 'Time remaining: {}'.format(time_remaining)

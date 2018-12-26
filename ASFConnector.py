@@ -64,7 +64,7 @@ class ASFConnector:
                     if len(bot['BotConfig']) == 0:
                         message += 'Not configured.\n'
                     else:
-                        message += 'Offline.'
+                        message += 'Offline.\n'
         elif response['Success']:
             message = 'Bot {} not found.'.format(bot)
         else:

@@ -6,7 +6,7 @@ import telebot
 import re
 import argparse
 import logger
-import logging
+import requests.exceptions
 from ASFConnector import ASFConnector
 
 
@@ -108,7 +108,7 @@ def redeem_command(message):
         return
     bot_arg = match.group('bot') if match.group('bot') else 'ASF'
     response = asf_connector.get_bot_info(bot_arg)
-    LOG.debug("Response to redeem message: %s", str(response))
+    LOG.info("Response to status message: %s", str(response))
     bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
 
 
@@ -122,7 +122,7 @@ def redeem_command(message):
     bots = match.group('bot') if match.group('bot') else 'ASF'
     keys = match.group('arg')
     response = asf_connector.bot_redeem(bots, keys)
-    LOG.debug("Response to redeem message: %s", str(response))
+    LOG.info("Response to redeem message: %s", str(response))
     bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
 
 
@@ -137,7 +137,13 @@ def command_handler(message):
         bot.reply_to(message, "Invalid command.", parse_mode="Markdown")
         return
     command = match.group('input')
-    response = asf_connector.send_command(command)
+    try:
+        response = asf_connector.send_command(command)
+        LOG.info("Command: {}. Response: {}".format(message, response))
+    except requests.exceptions.HTTPError as ex:
+        status_code = ex.response.status_code
+        LOG.error(ex)
+        response = 'Error sending command. ASF status code: {}'.format(status_code)
     bot.reply_to(message, response, parse_mode="Markdown")
 
 

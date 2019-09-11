@@ -139,7 +139,7 @@ def command_handler(message):
     command = match.group('input')
     try:
         response = asf_connector.send_command(command)
-        LOG.info("Command: {}. Response: {}".format(message, response))
+        LOG.info("Command: {}. Response: {}".format(message.text, response))
     except requests.exceptions.HTTPError as ex:
         status_code = ex.response.status_code
         LOG.error(ex)

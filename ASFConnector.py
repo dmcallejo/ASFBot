@@ -112,9 +112,9 @@ class ASFConnector:
         You should use “given bot” commands when executing this endpoint, omitting targets of the command will cause the command to be executed on first defined bot
         """
         LOG.debug("Send command: {}".format(command))
-        asf_command_resource = '/Command/'
-        resource = asf_command_resource + command
-        response = self.connection_handler.post(resource)
+        resource = '/Command/'
+        data = {"Command": command}
+        response = self.connection_handler.post(resource, payload=data)
         message = ""
         if response['Success']:
             message += response['Result']

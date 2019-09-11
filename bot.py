@@ -68,8 +68,16 @@ except KeyError as key_error:
     if not args.password:
         LOG.debug("No IPC Password provided.")
     pass
+
+# Sanitize input
 if args.alias[0] == '@':
     args.alias = args.alias[1:]
+
+args.token = args.token.strip()
+args.alias = args.alias.strip()
+args.host = args.host.strip()
+args.port = args.port.strip()
+args.password = args.password.strip()
 
 LOG.info("Starting up bot...")
 LOG.debug("Telegram token: %s", args.token)

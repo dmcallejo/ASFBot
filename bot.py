@@ -77,7 +77,8 @@ args.token = args.token.strip()
 args.alias = args.alias.strip()
 args.host = args.host.strip()
 args.port = args.port.strip()
-args.password = args.password.strip()
+if args.password:
+    args.password = args.password.strip()
 
 LOG.info("Starting up bot...")
 LOG.debug("Telegram token: %s", args.token)

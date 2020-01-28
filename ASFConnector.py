@@ -97,11 +97,16 @@ class ASFConnector:
                             for item in bot[key]['Items']:
                                 items += '[{}, {}] '.format(item, bot[key]['Items'][item])
                             message += "\t[{}] {}:{}/{}\n".format(
-                                key, items, Result[bot[key]['Result']],
-                                PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
+                                key, items, bot[key]['Result'] if type(bot[key]['Result']) is str
+                                else Result[bot[key]['Result']],
+                                bot[key]['PurchaseResultDetail'] if type(bot[key]['PurchaseResultDetail']) is str
+                                else PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
                         else:
                             message += "\t[{}] {}/{}\n".format(
-                                key, Result[bot[key]['Result']], PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
+                                key, bot[key]['Result'] if type(bot[key]['Result']) is str
+                                else Result[bot[key]['Result']],
+                                bot[key]['PurchaseResultDetail'] if type(bot[key]['PurchaseResultDetail']) is str
+                                else PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
         else:
             message = 'Redeem failed: {}'.format(response['Message'])
         return message

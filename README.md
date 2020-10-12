@@ -43,25 +43,25 @@ P.S.: ARM docker images are untested. Did you try them? Contact me!
 ## docker-compose.yml template
 ```
 version: '3.2'
-asf:
-  image: justarchi/archisteamfarm
-  container_name: asf
-  hostname: asf
-  restart: unless-stopped
-  environment:
-    - ASF_ARGS=--server
-  ports:
-    - 1242:1242
-  volumes:
-    - # (1) paste here your old ASF/config directory :/app/config
-
-asfbot:
-  image: dmcallejo/asfbot
-  container_name: asfbot
-  hostname: asfbot
-  restart: unless-stopped
-  command: --host asf
-  environment:
-    - TELEGRAM_BOT_TOKEN= # (2) paste here your API token given by @botfather
-    - TELEGRAM_USER_ALIAS= # (3) paste here your Telegram alias i.e.: @myalias
+services:
+  asf:
+    image: justarchi/archisteamfarm
+    container_name: asf
+    hostname: asf
+    restart: unless-stopped
+    environment:
+      - ASF_ARGS=--server
+    ports:
+      - 1242:1242
+    volumes:
+      - # (1) paste here your old ASF/config directory :/app/config
+  asfbot:
+    image: dmcallejo/asfbot
+    container_name: asfbot
+    hostname: asfbot
+    restart: unless-stopped
+    command: --host asf
+    environment:
+      - TELEGRAM_BOT_TOKEN= # (2) paste here your API token given by @botfather
+      - TELEGRAM_USER_ALIAS= # (3) paste here your Telegram alias i.e.: @myalias
 ```

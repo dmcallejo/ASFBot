@@ -109,16 +109,16 @@ def is_user_message(message):
 
 
 @bot.message_handler(func=is_user_message, commands=['status'])
-def redeem_command(message):
+def status_command(message):
     LOG.debug("Received status message: %s", str(message))
     match = re.search(_REGEX_COMMAND, message.text)
     if not match:
-        bot.reply_to(message, "Invalid command. Usage:\n`/status <bot>`", parse_mode="Markdown")
+        reply_to(message, "Invalid command. Usage:\n<code>/status &lt;bot&gt;</code>")
         return
     bot_arg = match.group('bot') if match.group('bot') else 'ASF'
     response = asf_connector.get_bot_info(bot_arg)
     LOG.info("Response to status message: %s", str(response))
-    bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
+    reply_to(message, "<code>" + str(response) + "</code>")
 
 
 @bot.message_handler(commands=['redeem'])
@@ -126,13 +126,13 @@ def redeem_command(message):
     LOG.debug("Received redeem message: %s", str(message))
     match = re.search(_REGEX_COMMAND_BOT_ARGS, message.text)
     if not match:
-        bot.reply_to(message, "Missing arguments. Usage:\n`/redeem <bot> <keys>`", parse_mode="Markdown")
+        reply_to(message, "Missing arguments. Usage:\n<code>/redeem &lt;bot&gt; &lt;keys&gt;</code>")
         return
     bots = match.group('bot') if match.group('bot') else 'ASF'
     keys = match.group('arg')
     response = asf_connector.bot_redeem(bots, keys)
     LOG.info("Response to redeem message: %s", str(response))
-    bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
+    reply_to(message, "<code>" + str(response) + "</code>")
 
 
 @bot.message_handler(func=is_user_message, regexp=_REGEX_COMMAND_RAW)
@@ -143,17 +143,18 @@ def command_handler(message):
     LOG.debug("Received command: %s", str(message))
     match = re.search(_REGEX_COMMAND_RAW, message.text)
     if not match:
-        bot.reply_to(message, "Invalid command.", parse_mode="Markdown")
+        reply_to(message, "Invalid command.")
         return
     command = match.group('input')
     try:
-        response = asf_connector.send_command(command)
-        LOG.info("Command: {}. Response: {}".format(message.text, response))
+        asf_response = asf_connector.send_command(command)
+        LOG.info("Command: {}. Response: {}".format(message.text, asf_response))
+        response = replace_html_entities(asf_response)
     except requests.exceptions.HTTPError as ex:
         status_code = ex.response.status_code
         LOG.error(ex)
-        response = 'Error sending command. ASF status code: {}'.format(status_code)
-    bot.reply_to(message, response, parse_mode="Markdown")
+        response = 'Error sending command. ASF status code: <code>{}</code>'.format(status_code)
+    reply_to(message, response)
 
 
 @bot.message_handler(content_types=['text'])
@@ -164,15 +165,29 @@ def check_for_cdkeys(message):
     cdkeys = set(_REGEX_CDKEY.findall(message.text))
     if len(cdkeys) > 0:
         response = asf_connector.bot_redeem('ASF', cdkeys)
-        bot.reply_to(message, "```\n" + str(response) + "\n```", parse_mode="Markdown")
+        reply_to(message, "<code>" + str(response) + "</code>")
     else:
         LOG.debug("Bypassed message: %s \n from user alias %s.",
                   message.text, message.chat.username)
+
+
+def reply_to(message, text, **kwargs):
+    try:
+        bot.reply_to(message, text, parse_mode="html", **kwargs)
+    except Exception as ex:
+        bot.reply_to(message, "There was a Telegram error sending the message:\n" + text +
+                     ". \n Check the bot log for more details.")
+        LOG.exception(ex)
+
+
+def replace_html_entities(message: str):
+    return message.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
 try:
     LOG.debug("Polling started")
     bot.polling(none_stop=True)
 except Exception as e:
-    LOG.critical(str(e))
     LOG.exception(e)
+    LOG.critical(str(e))
+

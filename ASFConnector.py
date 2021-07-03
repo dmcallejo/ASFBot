@@ -30,7 +30,7 @@ class ASFConnector:
         LOG.debug('get_bot_info: bot {}'.format(bot))
         resource = '/Bot/' + bot
         response = self.connection_handler.get(resource)
-        if response['Result']:
+        if 'Result' in response:
             message = ""
             for bot_name in response['Result']:
                 message += 'Bot {}: '.format(bot_name)

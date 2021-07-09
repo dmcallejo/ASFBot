@@ -55,11 +55,20 @@ class IPCProtocolHandler:
                 raise TypeError(message)
         url = self.base_url + resource  # TODO: refactor
         LOG.debug("Requesting %s with payload %s", url, str(payload))
-        response = self.session.post(url, json=payload)
-        response.raise_for_status()
-        LOG.debug(response.url)
-        LOG.debug(response.json())
-        return response.json()
+        try:
+            response = self.session.post(url, json=payload)
+            response.raise_for_status()
+            LOG.debug(response.url)
+            LOG.debug(response.json())
+            return response.json()
+        except requests.exceptions.RequestException as ex:
+            LOG.error("Error Requesting %s with payload %s", url, str(payload))
+            LOG.exception(ex)
+            reason = extract_reason_from_exception(ex)
+            return {
+                'Success': False,
+                'Message': reason
+            }
 
 
 def extract_reason_from_exception(ex: Exception):

@@ -3,7 +3,7 @@
 ### Telegram Bot coded in python to control your ASF instance.
 Control your ASF instance anywhere.
 
-[![Docker Automated build](https://img.shields.io/docker/automated/dmcallejo/asfbot.svg)](https://hub.docker.com/r/dmcallejo/asfbot/) [![Docker Build Status](https://img.shields.io/docker/build/dmcallejo/asfbot.svg)](https://hub.docker.com/r/dmcallejo/asfbot/) [![Docker Pulls](https://img.shields.io/docker/pulls/dmcallejo/asfbot.svg)](https://hub.docker.com/r/dmcallejo/asfbot)
+[![Docker Build Action](https://github.com/dmcallejo/ASFBot/actions/workflows/docker.yml/badge.svg)](https://github.com/dmcallejo/ASFBot/actions/workflows/docker.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/dmcallejo/asfbot.svg)](https://hub.docker.com/r/dmcallejo/asfbot)
 
 ## Usage:
  - Executable: (python3) bot.py

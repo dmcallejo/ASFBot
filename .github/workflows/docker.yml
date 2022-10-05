@@ -38,7 +38,7 @@ jobs:
         with:
           context: .
           push: true
-          file: Dockerfile
+          file: Dockerfile.x64
           tags: ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
 
       # Now build and push to Dockerhub

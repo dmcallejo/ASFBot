@@ -95,9 +95,8 @@ try:
         LOG.warning('ASF Instance message was unsuccesful. %s', str(asf_info))
 
 except Exception as e:
-    LOG.critical("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
+    LOG.error("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
                  args.host, args.port, str(e))
-    exit(1)
 
 bot = telebot.TeleBot(args.token)
 
@@ -111,14 +110,27 @@ def is_user_message(message):
 @bot.message_handler(func=is_user_message, commands=['status'])
 def status_command(message):
     LOG.debug("Received status message: %s", str(message))
-    match = re.search(_REGEX_COMMAND, message.text)
-    if not match:
-        reply_to(message, "Invalid command. Usage:\n<code>/status &lt;bot&gt;</code>")
-        return
-    bot_arg = match.group('bot') if match.group('bot') else 'ASF'
-    response = asf_connector.get_bot_info(bot_arg)
-    LOG.info("Response to status message: %s", str(response))
-    reply_to(message, "<code>" + str(response) + "</code>")
+    try:
+        match = re.search(_REGEX_COMMAND, message.text)
+        if not match:
+            reply_to(message, "Invalid command. Usage:\n<code>/status &lt;bot&gt;</code>")
+            return
+        bot_arg = match.group('bot') if match.group('bot') else 'ASF'
+        response = asf_connector.get_bot_info(bot_arg)
+        LOG.info("Response to status message: %s", str(response))
+        reply_to(message, "<code>" + str(response) + "</code>")
+    except requests.HTTPError as http_error:
+        LOG.exception(http_error)
+        response = http_error.response
+        status_code = response.status_code
+    except requests.ConnectionError as connection_error:
+        LOG.exception(connection_error)
+        error_message = str(connection_error.args[0].reason.args[0]).split('>:')[1]
+        error_response = "Couldn't reach the ASF instance: <code>{}</code>".format(error_message)
+        reply_to(message, error_response)
+    except Exception as ex:
+        reply_to(message, "There was an unexpected error. Please check the logs for more info.")
+        LOG.exception(ex)
 
 
 @bot.message_handler(commands=['redeem'])
@@ -171,7 +183,9 @@ def check_for_cdkeys(message):
                   message.text, message.chat.username)
 
 
-def reply_to(message, text, **kwargs):
+def reply_to(message, text, sanitize=False, **kwargs):
+    if sanitize:
+        text = replace_html_entities(text)
     try:
         bot.reply_to(message, text, parse_mode="html", **kwargs)
     except Exception as ex:

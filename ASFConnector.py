@@ -30,7 +30,7 @@ class ASFConnector:
         LOG.debug('get_bot_info: bot {}'.format(bot))
         resource = '/Bot/' + bot
         response = self.connection_handler.get(resource)
-        if response['Result']:
+        if 'Result' in response:
             message = ""
             for bot_name in response['Result']:
                 message += 'Bot {}: '.format(bot_name)
@@ -84,7 +84,7 @@ class ASFConnector:
                 payload_keys.append(key)
         data = {'KeysToRedeem': payload_keys}
         response = self.connection_handler.post(resource, payload=data)
-        if response['Result']:
+        if 'Result' in response:
             results = response['Result']
             message = ""
             for bot_name in results:
@@ -107,6 +107,8 @@ class ASFConnector:
                                 else Result[bot[key]['Result']],
                                 bot[key]['PurchaseResultDetail'] if type(bot[key]['PurchaseResultDetail']) is str
                                 else PurchaseResultDetail[bot[key]['PurchaseResultDetail']])
+        elif response['Success']:
+            message = 'Bot {} not found.'.format(bot)
         else:
             message = 'Redeem failed: {}'.format(response['Message'])
         return message

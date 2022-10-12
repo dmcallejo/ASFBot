@@ -38,7 +38,7 @@ I recommend running it via its Docker image. Here it is an example docker-compos
 
  Run ```docker-compose up -d```
 
-P.S.: ARM docker images are untested. Did you try them? Contact me!
+P.S.: ARMv7 and ARM64 docker builds are untested. Did you try them? Contact me!
 
 ## docker-compose.yml template
 ```
@@ -56,7 +56,7 @@ services:
     volumes:
       - # (1) paste here your old ASF/config directory :/app/config
   asfbot:
-    image: dmcallejo/asfbot
+    image: ghcr.io/dmcallejo/asfbot
     container_name: asfbot
     hostname: asfbot
     restart: unless-stopped

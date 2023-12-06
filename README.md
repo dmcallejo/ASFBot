@@ -30,11 +30,35 @@ The bot also reads messages containing Steam cd-keys. It will automatically pars
 2. Copy and fill the ```docker-compose.yml``` example below.
 3. Start it!
 
+## ASF Configuration
+ASF must have a permissive IPC configuration in order to allow ASFBot to interact. A permissive `IPC.json` configuration looks like this:
+```json
+{
+  "Kestrel": {
+    "Endpoints": {
+      "IPv4-http": {
+        "Url": "http://0.0.0.0:1242"
+      }
+    },
+    "PathBase": "/"
+  }
+}
+```
+
+You may also need to add this properties to `ASF.json` file:
+```json
+{
+  "IPCPrefixes": [
+    "http://*:1242/"
+  ]
+}
+```
+
 ## Notes
-I recommend running it via its Docker image. Here it is an example docker-compose.yml to run bot ASF and the bot on Docker. Copy this to a file named ```docker-compose.yml```, fill the appropriate missing data:
- - (1) your ASF/config directory path (remember to include in your ASF.json a permissive IPCPrefix like ```http://*:1242/```)
- - (2) Your Telegram bot token
- - (3) Your Telegram user alias
+I recommend running ASFBot via its Docker image. Here it is an example docker-compose.yml to run bot ASF and the bot on Docker. Copy this to a file named ```docker-compose.yml```, fill the appropriate missing data:
+ - (1) your ASF/config directory path.
+ - (2) Your Telegram bot token.
+ - (3) Your Telegram user alias.
 
  Run ```docker-compose up -d```
 
@@ -54,7 +78,7 @@ services:
     ports:
       - 1242:1242
     volumes:
-      - # (1) paste here your old ASF/config directory :/app/config
+      - <(1) paste here your old ASF/config directory>:/app/config
   asfbot:
     image: ghcr.io/dmcallejo/asfbot
     container_name: asfbot
@@ -62,6 +86,6 @@ services:
     restart: unless-stopped
     command: --host asf
     environment:
-      - TELEGRAM_BOT_TOKEN= # (2) paste here your API token given by @botfather
-      - TELEGRAM_USER_ALIAS= # (3) paste here your Telegram alias i.e.: @myalias
+      - TELEGRAM_BOT_TOKEN='<(2) paste here your API token given by @botfather>'
+      - TELEGRAM_USER_ALIAS='<(3) paste here your Telegram alias i.e.: @myalias>'
 ```

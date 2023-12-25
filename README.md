@@ -18,6 +18,7 @@ Control your ASF instance anywhere.
 You can also use **environment variables** to configure the bot. Environment variables would override any command argument set. The naming is pretty self-explanatory:
    - ```TELEGRAM_BOT_TOKEN```
    - ```TELEGRAM_USER_ALIAS```
+   - ```TELEGRAM_PROXY```
    - ```ASF_IPC_HOST```
    - ```ASF_IPC_PORT```
    - ```ASF_IPC_PASSWORD```

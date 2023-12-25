@@ -16,6 +16,7 @@ _REGEX_COMMAND_RAW = '^[/!](?P<input>(?P<command>\w+).*)'
 _REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
+_ENV_TELEGRAM_PROXY = "TELEGRAM_PROXY"
 _ENV_ASF_IPC_HOST = "ASF_IPC_HOST"
 _ENV_ASF_IPC_PORT = "ASF_IPC_PORT"
 _ENV_ASF_IPC_PASSWORD = "ASF_IPC_PASSWORD"
@@ -31,6 +32,7 @@ parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242'
 parser.add_argument("--password", help="ASF IPC password.", default=None)
 parser.add_argument("--token", type=str,
                     help="Telegram API token given by @botfather.", default=None)
+parser.add_argument("--proxy", help="Telegram Proxy, like http://192.168.1.1:7890", default=None)
 parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
 args = parser.parse_args()
 
@@ -52,6 +54,10 @@ except KeyError as key_error:
         LOG.critical(
             "No telegram user alias provided. Please do so using --alias argument or %s environment variable.", _ENV_TELEGRAM_USER_ALIAS)
         exit(1)
+try:
+    args.proxy = os.environ[_ENV_TELEGRAM_PROXY]
+except KeyError as key_error:
+    pass
 
 # ASF IPC related environment variables.
 try:
@@ -77,11 +83,14 @@ args.token = args.token.strip()
 args.alias = args.alias.strip()
 args.host = args.host.strip()
 args.port = args.port.strip()
+args.proxy = args.proxy.strip()
 if args.password:
     args.password = args.password.strip()
 
+
 LOG.info("Starting up bot...")
 LOG.debug("Telegram token: %s", args.token)
+LOG.debug("Telegram Proxy %s", args.proxy)
 LOG.debug("User alias: %s", args.alias)
 LOG.debug("ASF IPC host: %s", args.host)
 LOG.debug("ASF IPC port: %s", args.port)
@@ -97,6 +106,9 @@ try:
 except Exception as e:
     LOG.error("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
                  args.host, args.port, str(e))
+    
+if _ENV_TELEGRAM_PROXY != '':
+    telebot.apihelper.proxy = {'http':_ENV_TELEGRAM_PROXY}
 
 bot = telebot.TeleBot(args.token)
 

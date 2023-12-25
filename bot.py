@@ -110,7 +110,10 @@ except Exception as e:
                  args.host, args.port, str(e))
     
 if args.proxy != '':
-    apihelper.proxy = {'https':args.proxy}
+    apihelper.proxy = {
+        'http':args.proxy,
+        'https':args.proxy
+        }
     LOG.debug("Proxy: %s", apihelper.proxy)
 
 bot = telebot.TeleBot(args.token)

@@ -3,6 +3,7 @@
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 import telebot
+from telebot import apihelper
 import re
 import argparse
 import logger
@@ -83,7 +84,8 @@ args.token = args.token.strip()
 args.alias = args.alias.strip()
 args.host = args.host.strip()
 args.port = args.port.strip()
-args.proxy = args.proxy.strip()
+if args.proxy:
+    args.proxy = args.proxy.strip()
 if args.password:
     args.password = args.password.strip()
 
@@ -107,17 +109,16 @@ except Exception as e:
     LOG.error("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
                  args.host, args.port, str(e))
     
-if _ENV_TELEGRAM_PROXY != '':
-    telebot.apihelper.proxy = {'http':_ENV_TELEGRAM_PROXY}
+if args.proxy != '':
+    apihelper.proxy = {'https':args.proxy}
+    LOG.debug("Proxy: %s", apihelper.proxy)
 
 bot = telebot.TeleBot(args.token)
-
 
 def is_user_message(message):
     """ Returns if a message is from the owner of the bot comparing it to the user alias provided on startup. """
     username = message.chat.username
     return username == args.alias
-
 
 @bot.message_handler(func=is_user_message, commands=['status'])
 def status_command(message):

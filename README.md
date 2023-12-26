@@ -10,7 +10,7 @@ Control your ASF instance anywhere.
  - Arguments:
    - ```--token``` : Telegram API token given by @botfather (**mandatory**).
    - ```--alias``` : Telegram alias of the bot owner. Only this user can send commands to ASF. (**mandatory**).
-   - ```--proxy``` : Telegram Proxy (if you have set one)
+   - ```--proxy``` : Telegram Proxy (if you have one, http proxy accepted, i.e. ```192.168.1.1:7890```)
    - ```--host``` : ASF IPC host (defaults to ```127.0.0.1```)
    - ```--port``` : ASF IPC listening port (defaults to ```1242```)
    - ```--password``` : ASF IPC password (if you have set one)
@@ -90,4 +90,5 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN='<(2) paste here your API token given by @botfather>'
       - TELEGRAM_USER_ALIAS='<(3) paste here your Telegram alias i.e.: @myalias>'
+      - TELEGRAM_PROXY='<(4) incase you need it, i.e. http://192.168.1.1:7890>'
 ```

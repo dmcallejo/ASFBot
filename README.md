@@ -8,27 +8,28 @@ Control your ASF instance anywhere.
 ## Usage:
  - Executable: (python3) bot.py
  - Arguments:
-   - ```--token``` : Telegram API token given by @botfather (**mandatory**).
-   - ```--alias``` : Telegram alias of the bot owner. Only this user can send commands to ASF. (**mandatory**).
-   - ```--host``` : ASF IPC host (defaults to ```127.0.0.1```)
-   - ```--port``` : ASF IPC listening port (defaults to ```1242```)
-   - ```--password``` : ASF IPC password (if you have set one)
-   - ```--verbosity```: Log verbosity (DEBUG, INFO, WARN, ERROR)
+   - `--token` : Telegram API token given by @botfather (**mandatory**).
+   - `--alias` : Telegram alias of the bot owner. Only this user can send commands to ASF. (**mandatory**).
+   - `--proxy` : Telegram Proxy (if you have one. Input format: `<protocol>://<host>:<port>`. For example: `http://192.168.1.1:7890`)
+   - `--host` : ASF IPC host (defaults to `127.0.0.1`)
+   - `--port` : ASF IPC listening port (defaults to `1242`)
+   - `--password` : ASF IPC password (if you have set one)
+   - `--verbosity`: Log verbosity (DEBUG, INFO, WARN, ERROR)
 
 You can also use **environment variables** to configure the bot. Environment variables would override any command argument set. The naming is pretty self-explanatory:
-   - ```TELEGRAM_BOT_TOKEN```
-   - ```TELEGRAM_USER_ALIAS```
-   - ```TELEGRAM_PROXY```
-   - ```ASF_IPC_HOST```
-   - ```ASF_IPC_PORT```
-   - ```ASF_IPC_PASSWORD```
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_USER_ALIAS`
+   - `TELEGRAM_PROXY`
+   - `ASF_IPC_HOST`
+   - `ASF_IPC_PORT`
+   - `ASF_IPC_PASSWORD`
 
 Once the bot has started and verified the connection to the ASF instance, you can send commands through your telegram bot using standard ASF notation (i.e.: ```!status asf```) or Telegram notation (i.e.: ```/status asf```). 
 The bot also reads messages containing Steam cd-keys. It will automatically parse every key and activate them on your accounts with ```!redeem asf {{parsed_cdkey}}``` notifying you the process.
 
 ## Quickstart (with docker)
 1. Create a bot via [@botfather](t.me/BotFather).
-2. Copy and fill the ```docker-compose.yml``` example below.
+2. Copy and fill the `docker-compose.yml` example below.
 3. Start it!
 
 ## ASF Configuration
@@ -61,7 +62,7 @@ I recommend running ASFBot via its Docker image. Here it is an example docker-co
  - (2) Your Telegram bot token.
  - (3) Your Telegram user alias.
 
- Run ```docker-compose up -d```
+ Run docker-compose up -d`
 
 P.S.: ARMv7 and ARM64 docker builds are untested. Did you try them? Contact me!
 

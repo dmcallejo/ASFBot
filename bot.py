@@ -3,6 +3,7 @@
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 import telebot
+from telebot import apihelper
 import re
 import argparse
 import logger
@@ -32,7 +33,9 @@ parser.add_argument("--port", help="ASF IPC port. Default: 1242", default='1242'
 parser.add_argument("--password", help="ASF IPC password.", default=None)
 parser.add_argument("--token", type=str,
                     help="Telegram API token given by @botfather.", default=None)
-parser.add_argument("--proxy", help="Telegram Proxy, like http://192.168.1.1:7890", default=None)
+parser.add_argument("--proxy", help="Use a proxy to connect to Telegram. Format: "
+                                    "<protocol>://<host>:<port>. For example: http://192.168.1.1:7890"
+                    , default=None)
 parser.add_argument("--alias", type=str, help="Telegram alias of the bot owner.", default=None)
 args = parser.parse_args()
 
@@ -44,7 +47,8 @@ try:
 except KeyError as key_error:
     if not args.token:
         LOG.critical(
-            "No telegram bot token provided. Please do so using --token argument or %s environment variable.", _ENV_TELEGRAM_BOT_TOKEN)
+            "No telegram bot token provided. Please do so using --token argument or %s environment variable.",
+            _ENV_TELEGRAM_BOT_TOKEN)
         exit(1)
 
 try:
@@ -52,7 +56,8 @@ try:
 except KeyError as key_error:
     if not args.alias:
         LOG.critical(
-            "No telegram user alias provided. Please do so using --alias argument or %s environment variable.", _ENV_TELEGRAM_USER_ALIAS)
+            "No telegram user alias provided. Please do so using --alias argument or %s environment variable.",
+            _ENV_TELEGRAM_USER_ALIAS)
         exit(1)
 try:
     args.proxy = os.environ[_ENV_TELEGRAM_PROXY]
@@ -83,10 +88,11 @@ args.token = args.token.strip()
 args.alias = args.alias.strip()
 args.host = args.host.strip()
 args.port = args.port.strip()
-args.proxy = args.proxy.strip()
 if args.password:
     args.password = args.password.strip()
 
+if args.proxy:
+    args.proxy = args.proxy.strip()
 
 LOG.info("Starting up bot...")
 LOG.debug("Telegram token: %s", args.token)
@@ -105,10 +111,16 @@ try:
 
 except Exception as e:
     LOG.error("Couldn't communicate with ASF. Host: '%s' Port: '%s' \n %s",
-                 args.host, args.port, str(e))
+              args.host, args.port, str(e))
     
-if _ENV_TELEGRAM_PROXY != '':
-    telebot.apihelper.proxy = {'http':_ENV_TELEGRAM_PROXY}
+if args.proxy and args.proxy != '' and '://' in args.proxy:
+    protocol, url = args.proxy.split('://', 1)
+    apihelper.proxy = {
+        protocol: url
+    }
+    LOG.info(f"Using proxy to connect to Telegram: {protocol}://{apihelper.proxy[protocol]}")
+elif args.proxy and args.proxy != '' and '://' not in args.proxy:
+    LOG.error(f"Invalid proxy provided: {args.proxy}. Skipping...")
 
 bot = telebot.TeleBot(args.token)
 

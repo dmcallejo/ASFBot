@@ -86,8 +86,10 @@ services:
     container_name: asfbot
     hostname: asfbot
     restart: unless-stopped
-    command: --host asf
+    depends_on: 
+      - asf
     environment:
-      - TELEGRAM_BOT_TOKEN='<(2) paste here your API token given by @botfather>'
-      - TELEGRAM_USER_ALIAS='<(3) paste here your Telegram alias i.e.: @myalias>'
+      - ASF_IPC_HOST=asf
+      - TELEGRAM_BOT_TOKEN=<(2) paste here your API token given by @botfather>
+      - TELEGRAM_USER_ALIAS=<(3) paste here your Telegram alias i.e.: @myalias>
 ```

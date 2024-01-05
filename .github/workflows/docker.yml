@@ -67,7 +67,7 @@ jobs:
           file: Dockerfile
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}${{ env.DOCKER_IMAGE_TAG }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}${{ env.DOCKER_IMAGE_TAG }}
+            ${{ github.repository_owner }}/${{ env.DOCKER_IMAGE_NAME }}${{ env.DOCKER_IMAGE_TAG }}
       - name: Docker Hub Description
         if: github.event_name != 'pull_request' && github.ref_name == 'master'
         uses: peter-evans/dockerhub-description@v3

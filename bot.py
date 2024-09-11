@@ -11,10 +11,10 @@ import requests.exceptions
 from ASFConnector import ASFConnector
 
 
-_REGEX_CDKEY = re.compile('\w{5}-\w{5}-\w{5}')
-_REGEX_COMMAND_BOT_ARGS = '^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
-_REGEX_COMMAND_RAW = '^[/!](?P<input>(?P<command>\w+).*)'
-_REGEX_COMMAND = '^[/!]\w+\s*(?P<bot>\w+)?'
+_REGEX_CDKEY = re.compile(r'\w{5}-\w{5}-\w{5}')
+_REGEX_COMMAND_BOT_ARGS = r'^[/!]\w+\s*(?P<bot>\w+)?\s+(?P<arg>.*)'
+_REGEX_COMMAND_RAW = r'^[/!](?P<input>(?P<command>\w+).*)'
+_REGEX_COMMAND = r'^[/!]\w+\s*(?P<bot>\w+)?'
 _ENV_TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
 _ENV_TELEGRAM_USER_ALIAS = "TELEGRAM_USER_ALIAS"
 _ENV_TELEGRAM_PROXY = "TELEGRAM_PROXY"

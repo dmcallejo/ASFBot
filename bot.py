@@ -224,8 +224,10 @@ def replace_html_entities(message: str):
 
 try:
     LOG.debug("Polling started")
-    bot.polling(none_stop=True)
+    bot.infinity_polling()
+except KeyboardInterrupt:
+    LOG.info("Exiting...")
+    exit(0)
 except Exception as e:
     LOG.exception(e)
-    LOG.critical(str(e))
 

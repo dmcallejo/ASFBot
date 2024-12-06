@@ -80,12 +80,8 @@ except KeyError as key_error:
         LOG.debug("No IPC Password provided.")
     pass
 
-# Sanitize input
-if args.alias[0] == '@':
-    args.alias = args.alias[1:]
-
 args.token = args.token.strip()
-args.alias = args.alias.strip()
+args.alias = [alias.replace('@', '').strip() for alias in args.alias.split(',')]
 args.host = args.host.strip()
 args.port = args.port.strip()
 if args.password:
@@ -128,7 +124,7 @@ bot = telebot.TeleBot(args.token)
 def is_user_message(message):
     """ Returns if a message is from the owner of the bot comparing it to the user alias provided on startup. """
     username = message.chat.username
-    return username == args.alias
+    return username in args.alias
 
 
 @bot.message_handler(func=is_user_message, commands=['status'])
